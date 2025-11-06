@@ -1,13 +1,13 @@
 let accidents=[], annual=[];
-let accidentsChart, baarChart, fiveMChart;
+let accidentsChart, baarChart, fiveMChart, maneuverChart;
 
 function fmt(n){return n==null||isNaN(n)?'—':n.toLocaleString()}
 
-// ---- Dark mode handling ----
+// Dark mode
 function applyTheme(initial=false){
   const pref = localStorage.getItem('theme') || 'light';
   if(pref==='dark'){ document.body.classList.add('dark'); } else { document.body.classList.remove('dark'); }
-  if(!initial){ update(); } // re-render charts to pick new colors
+  if(!initial){ update(); }
 }
 function toggleTheme(){
   const nowDark = !document.body.classList.contains('dark');
@@ -109,14 +109,24 @@ function themedGridOptions(){
     }
   };
 }
+function legendOnlyOptions(){
+  return { plugins:{ legend:{ labels:{ color: document.body.classList.contains('dark') ? '#e6e6e6' : '#333' } } } };
+}
 
 function renderCharts(rows){
   if (typeof Chart === 'undefined') {
     console.warn('Chart.js not loaded; skipping charts.');
     return;
   }
-  // Fixed-size charts (no resize) for stability
+  // Fixed-size charts (no resize)
   const optionsFixed = { responsive:false, animation:false };
+
+  // Sort rows by date desc for charts as well (consistency)
+  rows = rows.slice().sort((a,b)=>{
+    const ad = a.date? Date.parse(a.date) : 0;
+    const bd = b.date? Date.parse(b.date) : 0;
+    return bd - ad;
+  });
 
   // Accidents per year (filtered)
   const byYear = new Map();
@@ -131,7 +141,7 @@ function renderCharts(rows){
     options: { ...optionsFixed, ...themedGridOptions() }
   });
 
-  // BAAR/AFR/ACR/AER (from 2020 onwards only)
+  // BAAR/AFR/ACR/AER (2020+)
   const ann = annual.filter(d=> d.year >= 2020);
   const yearsB = ann.map(d=>d.year);
   const baar = ann.map(d=>d.BAAR);
@@ -151,12 +161,7 @@ function renderCharts(rows){
     options:{
       responsive:false, animation:false,
       ...themedGridOptions(),
-      plugins:{
-        zoom:{
-          zoom:{ wheel:{enabled:true}, pinch:{enabled:true}, mode:'x' },
-          pan:{ enabled:true, mode:'x' }
-        }
-      }
+      plugins:{ zoom:{ zoom:{ wheel:{enabled:true}, pinch:{enabled:true}, mode:'x' }, pan:{ enabled:true, mode:'x' } } }
     }
   });
 
@@ -173,12 +178,49 @@ function renderCharts(rows){
   fiveMChart = new Chart(ctx3, {
     type:'pie',
     data:{ labels:Object.keys(five), datasets:[{ data:Object.values(five) }]},
-    options: { responsive:false, animation:false, ...themedGridOptions() }
+    options: { ...optionsFixed, ...legendOnlyOptions() }
+  });
+
+  // Aerobatic manoeuvre breakdown (from remarks/manoeuvre)
+  const keys = [
+    ['cuban 8','cuban 8'], ['cuban eight','cuban 8'],
+    ['loop','loop'], ['immelman','immelman'], ['immelmann','immelman'],
+    ['split s','split-s'],
+    ['barrel roll','barrel roll'], ['aisleron roll','roll'], ['aileron roll','roll'], ['roll','roll'],
+    ['spin','spin'],
+    ['hammerhead','hammerhead'], ['stall turn','hammerhead'],
+    ['tail slide','tailslide'], ['tailslide','tailslide'],
+    ['snap roll','snap roll'],
+    ['lomcevak','lomcevak']
+  ];
+  const mCounts = new Map();
+  function bump(k){ mCounts.set(k, (mCounts.get(k)||0)+1); }
+  rows.forEach(d=>{
+    const text = [d.manoeuvre, d.remarks, d.contributing_factor].map(x=> (x||'')+'').join(' ').toLowerCase();
+    keys.forEach(([pat,label])=>{ if(text.includes(pat)) bump(label); });
+  });
+  let list = Array.from(mCounts.entries()).sort((a,b)=>b[1]-a[1]);
+  const other = list.slice(10).reduce((a,b)=>a+b[1],0);
+  list = list.slice(0,10);
+  if(other>0) list.push(['other', other]);
+
+  const ctx4 = document.getElementById('maneuverChart').getContext('2d');
+  if(maneuverChart) maneuverChart.destroy();
+  maneuverChart = new Chart(ctx4, {
+    type:'pie',
+    data:{ labels:list.map(d=>d[0]), datasets:[{ data:list.map(d=>d[1]) }]},
+    options: { ...optionsFixed, ...legendOnlyOptions() }
   });
 }
 
 function update(){
-  const rows = filterData();
+  let rows = filterData();
+  // Sort by date desc for table as requested (latest first)
+  rows = rows.slice().sort((a,b)=>{
+    const ad = a.date? Date.parse(a.date) : 0;
+    const bd = b.date? Date.parse(b.date) : 0;
+    return bd - ad;
+  });
   updateMetrics(rows);
   renderTable(rows);
   renderCharts(rows);
