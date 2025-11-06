@@ -4,8 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Airshow Safety Database</title>
-<link rel="stylesheet" href="src/css/style.css?v=4">
+<link rel="stylesheet" href="src/css/style.css?v=5">
 <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.min.js"></script>
 </head>
 <body>
 <header>
@@ -57,6 +58,7 @@
           <th>FIT</th><th>MAC</th><th>LOC</th><th>Mechanical</th><th>Env</th>
           <th>Fatal</th><th>Casualties</th><th>Event</th><th>Location</th>
           <th>Contributing Factor</th>
+          <th>Man</th><th>Machine</th><th>Medium</th><th>Mission</th><th>Mgmt</th><th>Remarks</th>
         </tr>
       </thead>
       <tbody id="rows"></tbody>
@@ -65,9 +67,9 @@
 </section>
 
 <footer>
-  <p>Rates (BAAR/AFR/ACR per 10,000 events; AER = 1 − accidents / (events×30×5)) are shown where event counts are available.</p>
+  <p>Rates (BAAR/AFR/ACR per 10,000 events; AER = 1 − accidents / (events×30×5)) are shown from <strong>2020 onwards</strong> (where event counts are available).</p>
 </footer>
 
-<script defer src="src/js/app.js?v=4"></script>
+<script defer src="src/js/app.js?v=5"></script>
 </body>
 </html>

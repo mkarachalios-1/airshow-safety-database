@@ -74,6 +74,12 @@ function renderTable(rows){
     tr.appendChild(td(d.event_name||''));
     tr.appendChild(td(d.location||''));
     tr.appendChild(td(d.contributing_factor||''));
+    tr.appendChild(td(d.man_factor===1?'Y':''));
+    tr.appendChild(td(d.machine_factor===1?'Y':''));
+    tr.appendChild(td(d.medium_factor===1?'Y':''));
+    tr.appendChild(td(d.mission_factor===1?'Y':''));
+    tr.appendChild(td(d.management_factor===1?'Y':''));
+    const tdR = td(d.remarks||'', 'col-remarks'); tdR.title = d.remarks||''; tr.appendChild(tdR);
     frag.appendChild(tr);
   });
   tbody.appendChild(frag);
@@ -100,12 +106,13 @@ function renderCharts(rows){
     options: optionsFixed
   });
 
-  // BAAR/AFR/ACR/AER (global where available)
-  const yearsB = annual.map(d=>d.year);
-  const baar = annual.map(d=>d.BAAR);
-  const afr  = annual.map(d=>d.AFR);
-  const acr  = annual.map(d=>d.ACR);
-  const aer  = annual.map(d=>d.AER);
+  // BAAR/AFR/ACR/AER (from 2020 onwards only)
+  const ann = annual.filter(d=> d.year >= 2020);
+  const yearsB = ann.map(d=>d.year);
+  const baar = ann.map(d=>d.BAAR);
+  const afr  = ann.map(d=>d.AFR);
+  const acr  = ann.map(d=>d.ACR);
+  const aer  = ann.map(d=>d.AER);
   const ctx2 = document.getElementById('baarChart').getContext('2d');
   if(baarChart) baarChart.destroy();
   baarChart = new Chart(ctx2, {
@@ -116,7 +123,15 @@ function renderCharts(rows){
       { label:'ACR (per 10k events)',  data:acr  },
       { label:'AER (Excellence Rate)', data:aer  }
     ]},
-    options: optionsFixed
+    options:{
+      ...optionsFixed,
+      plugins:{
+        zoom:{
+          zoom:{ wheel:{enabled:true}, pinch:{enabled:true}, mode:'x' },
+          pan:{ enabled:true, mode:'x' }
+        }
+      }
+    }
   });
 
   // 5M distribution (filtered)
