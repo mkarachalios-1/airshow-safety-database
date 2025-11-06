@@ -3,6 +3,18 @@ let accidentsChart, baarChart, fiveMChart;
 
 function fmt(n){return n==null||isNaN(n)?'—':n.toLocaleString()}
 
+// ---- Dark mode handling ----
+function applyTheme(initial=false){
+  const pref = localStorage.getItem('theme') || 'light';
+  if(pref==='dark'){ document.body.classList.add('dark'); } else { document.body.classList.remove('dark'); }
+  if(!initial){ update(); } // re-render charts to pick new colors
+}
+function toggleTheme(){
+  const nowDark = !document.body.classList.contains('dark');
+  localStorage.setItem('theme', nowDark ? 'dark' : 'light');
+  applyTheme();
+}
+
 async function loadData(){
   const accRes = await fetch('data/airshow_accidents.json');
   accidents = await accRes.json();
@@ -56,7 +68,7 @@ function renderTable(rows){
   const tbody = document.getElementById('rows');
   tbody.innerHTML = '';
   const frag = document.createDocumentFragment();
-  rows.slice(0, 500).forEach(d=>{
+  rows.forEach(d=>{
     const tr = document.createElement('tr');
     function td(v, cls){ const td=document.createElement('td'); if(cls) td.className=cls; td.textContent = v==null?'':v; return td; }
     tr.appendChild(td(d.date? d.date.substring(0,10):''));
@@ -85,6 +97,19 @@ function renderTable(rows){
   tbody.appendChild(frag);
 }
 
+function themedGridOptions(){
+  const dark = document.body.classList.contains('dark');
+  return {
+    scales:{
+      x:{ grid:{ color: dark ? '#333' : '#e5e5e5' }, ticks:{ color: dark ? '#e6e6e6' : '#333' } },
+      y:{ grid:{ color: dark ? '#333' : '#e5e5e5' }, ticks:{ color: dark ? '#e6e6e6' : '#333' } }
+    },
+    plugins:{
+      legend:{ labels:{ color: document.body.classList.contains('dark') ? '#e6e6e6' : '#333' } }
+    }
+  };
+}
+
 function renderCharts(rows){
   if (typeof Chart === 'undefined') {
     console.warn('Chart.js not loaded; skipping charts.');
@@ -103,7 +128,7 @@ function renderCharts(rows){
   accidentsChart = new Chart(ctx1, {
     type:'line',
     data:{ labels:years, datasets:[{ label:'Accidents (filtered)', data:counts }]},
-    options: optionsFixed
+    options: { ...optionsFixed, ...themedGridOptions() }
   });
 
   // BAAR/AFR/ACR/AER (from 2020 onwards only)
@@ -124,7 +149,8 @@ function renderCharts(rows){
       { label:'AER (Excellence Rate)', data:aer  }
     ]},
     options:{
-      ...optionsFixed,
+      responsive:false, animation:false,
+      ...themedGridOptions(),
       plugins:{
         zoom:{
           zoom:{ wheel:{enabled:true}, pinch:{enabled:true}, mode:'x' },
@@ -147,7 +173,7 @@ function renderCharts(rows){
   fiveMChart = new Chart(ctx3, {
     type:'pie',
     data:{ labels:Object.keys(five), datasets:[{ data:Object.values(five) }]},
-    options: optionsFixed
+    options: { responsive:false, animation:false, ...themedGridOptions() }
   });
 }
 
@@ -161,6 +187,8 @@ function update(){
 function init(){
   ['search','yearFrom','yearTo','manFilter','machineFilter','mediumFilter','missionFilter','managementFilter']
     .forEach(id=> document.getElementById(id).addEventListener('input', update));
+  const tbtn = document.getElementById('themeToggle'); if(tbtn){ tbtn.addEventListener('click', toggleTheme); }
+  applyTheme(true);
   update();
 }
 

@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Airshow Safety Database</title>
-<link rel="stylesheet" href="src/css/style.css?v=5">
+<link rel="stylesheet" href="src/css/style.css?v=6">
 <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.min.js"></script>
 </head>
@@ -21,9 +21,12 @@
   </div>
   <div class="control">
     <label for="yearFrom">Year from</label>
-    <input id="yearFrom" type="number" min="1908" max="2025" value="1900">
+    <input id="yearFrom" type="number" min="1908" max="2025" value="1908">
     <label for="yearTo">to</label>
     <input id="yearTo" type="number" min="1908" max="2025" value="2025">
+  </div>
+  <div class="control">
+    <button id="themeToggle" type="button" title="Toggle dark mode">🌙/☀️</button>
   </div>
   <div class="control">
     <span>5M Filters:</span>
@@ -49,6 +52,7 @@
 </section>
 
 <section id="table">
+  <h2 class="table-title">Barker Airshow Accident/ Incident Database</h2>
   <div class="scroll-hint">↔ Scroll table horizontally to see more columns</div>
   <div class="table-wrap">
     <table>
@@ -67,9 +71,9 @@
 </section>
 
 <footer>
-  <p>Rates (BAAR/AFR/ACR per 10,000 events; AER = 1 − accidents / (events×30×5)) are shown from <strong>2020 onwards</strong> (where event counts are available).</p>
+  <p>Rates (BAAR/AFR/ACR per 10,000 events; AER = 1 − accidents / (events×30×5)) are shown from <strong>2020 onwards</strong> (where event counts are available). Use mouse wheel or drag to zoom/pan the rates chart.</p>
 </footer>
 
-<script defer src="src/js/app.js?v=5"></script>
+<script defer src="src/js/app.js?v=6"></script>
 </body>
 </html>
