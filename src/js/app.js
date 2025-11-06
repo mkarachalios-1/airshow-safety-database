@@ -118,10 +118,9 @@ function renderCharts(rows){
     console.warn('Chart.js not loaded; skipping charts.');
     return;
   }
-  // Fixed-size charts (no resize)
   const optionsFixed = { responsive:false, animation:false };
 
-  // Sort rows by date desc for charts as well (consistency)
+  // Sort for table is latest-first; for charts, we aggregate by year after filtering
   rows = rows.slice().sort((a,b)=>{
     const ad = a.date? Date.parse(a.date) : 0;
     const bd = b.date? Date.parse(b.date) : 0;
@@ -165,7 +164,7 @@ function renderCharts(rows){
     }
   });
 
-  // 5M distribution (filtered)
+  // 5M distribution (filtered) - pie without axes/grids
   const five = {
     Man: rows.filter(d=>d.man_factor===1).length,
     Machine: rows.filter(d=>d.machine_factor===1).length,
@@ -181,12 +180,12 @@ function renderCharts(rows){
     options: { ...optionsFixed, ...legendOnlyOptions() }
   });
 
-  // Aerobatic manoeuvre breakdown (from remarks/manoeuvre)
+  // Aerobatic manoeuvre breakdown pie (from text)
   const keys = [
     ['cuban 8','cuban 8'], ['cuban eight','cuban 8'],
     ['loop','loop'], ['immelman','immelman'], ['immelmann','immelman'],
     ['split s','split-s'],
-    ['barrel roll','barrel roll'], ['aisleron roll','roll'], ['aileron roll','roll'], ['roll','roll'],
+    ['barrel roll','barrel roll'], ['aileron roll','roll'], ['roll','roll'],
     ['spin','spin'],
     ['hammerhead','hammerhead'], ['stall turn','hammerhead'],
     ['tail slide','tailslide'], ['tailslide','tailslide'],
@@ -215,7 +214,7 @@ function renderCharts(rows){
 
 function update(){
   let rows = filterData();
-  // Sort by date desc for table as requested (latest first)
+  // Sort by date desc for table (latest first)
   rows = rows.slice().sort((a,b)=>{
     const ad = a.date? Date.parse(a.date) : 0;
     const bd = b.date? Date.parse(b.date) : 0;

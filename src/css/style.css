@@ -22,9 +22,7 @@ label{font-size:14px}
 #themeToggle{ padding:6px 10px; border:1px solid #ccc; border-radius:6px; background:#fff; cursor:pointer }
 
 /* Sticky header row & first column */
-thead th:first-child, tbody td:first-child{
-  position: sticky; left: 0;
-}
+thead th:first-child, tbody td:first-child{ position: sticky; left: 0; }
 thead th:first-child{ z-index: 4; }
 tbody td:first-child{ z-index: 3; }
 
@@ -42,7 +40,7 @@ body.dark .scroll-hint{ color:#aaa }
 body.dark .table-wrap{ background:#0e0e0e; border-color:#222 }
 body.dark table{ background:transparent }
 body.dark thead th{ background:#151515; border-bottom-color:#333; color:#e6e6e6 }
-body.dark tbody td{ border-bottom-color:#1e1e1e; color:#e6e6e6 }
+body.dark tbody td{ border-bottom-color:#1a1a1a; color:#e6e6e6 }
 body.dark footer{ border-top-color:#222; color:#bbb }
 body.dark input[type='text'], body.dark input[type='number']{ background:#1a1a1a; color:#e6e6e6; border-color:#333 }
 body.dark #themeToggle{ background:#1a1a1a; border-color:#333; color:#e6e6e6 }
