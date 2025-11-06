@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Airshow Safety Database</title>
-<link rel="stylesheet" href="src/css/style.css?v=3">
+<link rel="stylesheet" href="src/css/style.css?v=4">
 <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 </head>
 <body>
@@ -48,22 +48,26 @@
 </section>
 
 <section id="table">
-  <table>
-    <thead>
-      <tr>
-        <th>Date</th><th>Aircraft</th><th>Category</th><th>Country</th><th>Manoeuvre</th>
-        <th>FIT</th><th>MAC</th><th>LOC</th><th>Mech</th><th>Env</th>
-        <th>Fatal</th><th>Casualties</th><th>Event</th><th>Location</th>
-      </tr>
-    </thead>
-    <tbody id="rows"></tbody>
-  </table>
+  <div class="scroll-hint">↔ Scroll table horizontally to see more columns</div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Date</th><th>Aircraft</th><th>Category</th><th>Country</th><th>Manoeuvre</th>
+          <th>FIT</th><th>MAC</th><th>LOC</th><th>Mechanical</th><th>Env</th>
+          <th>Fatal</th><th>Casualties</th><th>Event</th><th>Location</th>
+          <th>Contributing Factor</th>
+        </tr>
+      </thead>
+      <tbody id="rows"></tbody>
+    </table>
+  </div>
 </section>
 
 <footer>
-  <p>Rates (BAAR/AFR/ACR per 10,000 events; AER = 1 − accidents / (events×30×5)) are shown where event counts are available (2022–2024).</p>
+  <p>Rates (BAAR/AFR/ACR per 10,000 events; AER = 1 − accidents / (events×30×5)) are shown where event counts are available.</p>
 </footer>
 
-<script defer src="src/js/app.js?v=3"></script>
+<script defer src="src/js/app.js?v=4"></script>
 </body>
 </html>

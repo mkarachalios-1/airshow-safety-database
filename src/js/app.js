@@ -58,7 +58,7 @@ function renderTable(rows){
   const frag = document.createDocumentFragment();
   rows.slice(0, 500).forEach(d=>{
     const tr = document.createElement('tr');
-    function td(v){ const td=document.createElement('td'); td.textContent = v==null?'':v; return td; }
+    function td(v, cls){ const td=document.createElement('td'); if(cls) td.className=cls; td.textContent = v==null?'':v; return td; }
     tr.appendChild(td(d.date? d.date.substring(0,10):''));
     tr.appendChild(td(d.aircraft_type||''));
     tr.appendChild(td(d.category||''));
@@ -73,6 +73,7 @@ function renderTable(rows){
     tr.appendChild(td(d.casualties||0));
     tr.appendChild(td(d.event_name||''));
     tr.appendChild(td(d.location||''));
+    tr.appendChild(td(d.contributing_factor||''));
     frag.appendChild(tr);
   });
   tbody.appendChild(frag);
