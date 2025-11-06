@@ -1,5 +1,5 @@
-let accidents=[], annual=[];
-let accidentsChart, baarChart, fiveMChart, maneuverChart;
+let accidents=[], annual=[], barkerRates=[];
+let accidentsChart, ratesChart, fiveMChart, maneuverChart;
 
 function fmt(n){return n==null||isNaN(n)?'—':n.toLocaleString()}
 
@@ -20,8 +20,13 @@ async function loadData(){
   accidents = await accRes.json();
   const annRes = await fetch('data/annual_statistics.json');
   annual = await annRes.json();
+  try{
+    const barkRes = await fetch('data/barker_rates_2010_2024.json');
+    if(barkRes.ok) barkerRates = await barkRes.json();
+  }catch(e){ /* optional */ }
   accidents.forEach(d=>{ d.year = d.year? +d.year : null; });
   annual.forEach(d=>{ d.year = +d.year; });
+  barkerRates.forEach(d=>{ d.year = +d.year; d.AER_pct = +d.AER_pct; });
   init();
 }
 
@@ -65,12 +70,6 @@ function updateMetrics(rows){
 }
 
 function renderTable(rows){
-  // newest first in the table
-  rows = rows.slice().sort((a,b)=>{
-    const ad = a.date? Date.parse(a.date) : 0;
-    const bd = b.date? Date.parse(b.date) : 0;
-    return bd - ad;
-  });
   const tbody = document.getElementById('rows');
   tbody.innerHTML = '';
   const frag = document.createDocumentFragment();
@@ -119,26 +118,19 @@ function legendOnlyOptions(){
   return { plugins:{ legend:{ labels:{ color: document.body.classList.contains('dark') ? '#e6e6e6' : '#333' } } } };
 }
 
-function dualAxisOptions(aerPcts){
-  const dark = document.body.classList.contains('dark');
-  const minVal = Math.max(99.8, Math.floor((Math.min(...aerPcts.filter(x=>!isNaN(x))) - 0.05) * 1000)/1000);
-  return {
-    scales:{
-      x:{ grid:{ color: dark ? '#333' : '#e5e5e5' }, ticks:{ color: dark ? '#e6e6e6' : '#333' } },
-      y:{ beginAtZero:true, grid:{ color: dark ? '#333' : '#e5e5e5' }, ticks:{ color: dark ? '#e6e6e6' : '#333' }, title:{ display:true, text:'per 10k events', color: dark ? '#e6e6e6':'#333' } },
-      y1:{ position:'right', grid:{ drawOnChartArea:false }, min:minVal, max:100, ticks:{ color: dark ? '#e6e6e6' : '#333', callback:(v)=> v.toFixed(3)+'%' }, title:{ display:true, text:'AER (%)', color: dark ? '#e6e6e6':'#333' } }
-    },
-    plugins:{ legend:{ labels:{ color: dark ? '#e6e6e6' : '#333' } } }
-  };
-}
-
-
 function renderCharts(rows){
   if (typeof Chart === 'undefined') {
     console.warn('Chart.js not loaded; skipping charts.');
     return;
   }
   const optionsFixed = { responsive:false, animation:false };
+
+  // Sort latest-first for table; charts aggregate by year
+  rows = rows.slice().sort((a,b)=>{
+    const ad = a.date? Date.parse(a.date) : 0;
+    const bd = b.date? Date.parse(b.date) : 0;
+    return bd - ad;
+  });
 
   // Accidents per year (filtered)
   const byYear = new Map();
@@ -153,32 +145,52 @@ function renderCharts(rows){
     options: { ...optionsFixed, ...themedGridOptions() }
   });
 
-  // BAAR/AFR/ACR/AER (from 2020 onwards only)
-  const ann = annual.filter(d=> d.year >= 2020);
-  const yearsB = ann.map(d=>d.year);
-  const baar = ann.map(d=>d.BAAR);
-  const afr  = ann.map(d=>d.AFR);
-  const acr  = ann.map(d=>d.ACR);
-  const aer  = ann.map(d=>d.AER);
-  const ctx2 = document.getElementById('baarChart').getContext('2d');
-  if(baarChart) baarChart.destroy();
-  const aerPct = aer.map(v => (v<=1.5 ? v*100 : v));
-  baarChart = new Chart(ctx2, {
+  // Rates chart: use Barker if present; else computed >=2020
+  let series;
+  if (barkerRates && barkerRates.length){
+    series = barkerRates.slice().sort((a,b)=>a.year-b.year);
+  } else {
+    series = annual.filter(d=> d.year >= 2020).sort((a,b)=>a.year-b.year)
+                   .map(d=>({year:d.year, BAAR:d.BAAR, AFR:d.AFR, ACR:d.ACR, AER_pct:(d.AER*100)}));
+  }
+  const yearsR = series.map(d=>d.year);
+  const baar = series.map(d=>d.BAAR);
+  const afr  = series.map(d=>d.AFR);
+  const acr  = series.map(d=>d.ACR);
+  const aerP = series.map(d=>d.AER_pct);
+
+  const ctx2 = document.getElementById('ratesChart').getContext('2d');
+  if(ratesChart) ratesChart.destroy();
+  const minA = Math.min(...aerP), maxA = Math.max(...aerP);
+  const pad  = Math.max(0.02, (maxA-minA)*0.15);
+  const yRightMin = Math.max(95, minA - pad);
+  const yRightMax = Math.min(100, maxA + pad);
+
+  ratesChart = new Chart(ctx2, {
     type:'line',
-    data:{ labels:yearsB, datasets:[
-      { label:'BAAR (per 10k events)', data:baar, yAxisID:'y' },
-      { label:'AFR (per 10k events)',  data:afr,  yAxisID:'y' },
-      { label:'ACR (per 10k events)',  data:acr,  yAxisID:'y' },
-      { label:'AER (Excellence Rate)', data:aerPct, yAxisID:'y1' }
+    data:{ labels:yearsR, datasets:[
+      { label:'BAAR (per 10k events)', data:baar, yAxisID:'yL' },
+      { label:'AFR (per 10k events)',  data:afr,  yAxisID:'yL' },
+      { label:'ACR (per 10k events)',  data:acr,  yAxisID:'yL' },
+      { label:'AER (Excellence Rate)', data:aerP, yAxisID:'yR' }
     ]},
     options:{
       responsive:false, animation:false,
-      ...dualAxisOptions(aerPct),
-      plugins:{ zoom:{ zoom:{ wheel:{enabled:true}, pinch:{enabled:true}, mode:'x' }, pan:{ enabled:true, mode:'x' } } }
+      scales:{
+        yL:{ type:'linear', position:'left', grid:{ color: document.body.classList.contains('dark') ? '#333' : '#e5e5e5' },
+             title:{ display:true, text:'per 10,000 display items', color: document.body.classList.contains('dark') ? '#e6e6e6' : '#333' },
+             ticks:{ color: document.body.classList.contains('dark') ? '#e6e6e6' : '#333' } },
+        yR:{ type:'linear', position:'right', grid:{ drawOnChartArea:false },
+             min: yRightMin, max: yRightMax,
+             title:{ display:true, text:'AER (%)', color: document.body.classList.contains('dark') ? '#e6e6e6' : '#333' },
+             ticks:{ callback:(v)=>v.toFixed(3)+'%', color: document.body.classList.contains('dark') ? '#e6e6e6' : '#333' } }
+      },
+      plugins:{ zoom:{ zoom:{ wheel:{enabled:true}, pinch:{enabled:true}, mode:'x' }, pan:{ enabled:true, mode:'x' } },
+               legend:{ labels:{ color: document.body.classList.contains('dark') ? '#e6e6e6' : '#333' } } }
     }
   });
 
-  // 5M distribution (filtered)
+  // 5M distribution
   const five = {
     Man: rows.filter(d=>d.man_factor===1).length,
     Machine: rows.filter(d=>d.machine_factor===1).length,
@@ -191,10 +203,10 @@ function renderCharts(rows){
   fiveMChart = new Chart(ctx3, {
     type:'pie',
     data:{ labels:Object.keys(five), datasets:[{ data:Object.values(five) }]},
-    options: { ...optionsFixed, ...legendOnlyOptions() }
+    options: { responsive:false, animation:false, plugins:{ legend:{ labels:{ color: document.body.classList.contains('dark') ? '#e6e6e6' : '#333' } } } }
   });
 
-  // Aerobatic manoeuvre breakdown (from remarks/manoeuvre)
+  // Aerobatic manoeuvre distribution (pie)
   const keys = [
     ['cuban 8','cuban 8'], ['cuban eight','cuban 8'],
     ['loop','loop'], ['immelman','immelman'], ['immelmann','immelman'],
@@ -222,13 +234,12 @@ function renderCharts(rows){
   maneuverChart = new Chart(ctx4, {
     type:'pie',
     data:{ labels:list.map(d=>d[0]), datasets:[{ data:list.map(d=>d[1]) }]},
-    options: { ...optionsFixed, ...legendOnlyOptions() }
+    options: { responsive:false, animation:false, plugins:{ legend:{ labels:{ color: document.body.classList.contains('dark') ? '#e6e6e6' : '#333' } } } }
   });
 }
 
 function update(){
   let rows = filterData();
-  // Sort by date desc for table as requested (latest first)
   rows = rows.slice().sort((a,b)=>{
     const ad = a.date? Date.parse(a.date) : 0;
     const bd = b.date? Date.parse(b.date) : 0;

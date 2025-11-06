@@ -3,15 +3,15 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Airshow Safety Database</title>
-<link rel="stylesheet" href="src/css/style.css?v=8">
+<title>Airshow Safety & Excellence Database</title>
+<link rel="stylesheet" href="src/css/style.css?v=9">
 <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.min.js"></script>
 </head>
 <body>
 <header>
-  <h1>Airshow Safety Database</h1>
-  <p>Interactive, 5M-aligned repository of airshow accidents (1908–2025). Use search and filters below. Charts update as you filter.</p>
+  <h1>Airshow Safety & Excellence Database</h1>
+  <p>5M-aligned repository of airshow accidents (1908–2025). Use search and filters below. Charts update as you filter.</p>
 </header>
 
 <section id="controls">
@@ -46,14 +46,14 @@
   </div>
   <div class="charts">
     <canvas id="accidentsChart" width="900" height="360"></canvas>
-    <canvas id="baarChart" width="900" height="360"></canvas>
+    <canvas id="ratesChart" width="900" height="360"></canvas>
     <canvas id="fiveMChart" width="900" height="360"></canvas>
     <canvas id="maneuverChart" width="900" height="360"></canvas>
   </div>
 </section>
 
 <section id="table">
-  <h2 class="table-title">Barker Airshow Accident/ Incident Database</h2>
+  <h2 class="table-title">Barker Airshow Incident & Accident Database</h2>
   <div class="scroll-hint">↔ Scroll table horizontally to see more columns</div>
   <div class="table-wrap">
     <table>
@@ -72,9 +72,9 @@
 </section>
 
 <footer>
-  <p>Rates (BAAR/AFR/ACR per 10,000 events; AER = 1 − accidents / (events×30×5)) are shown from <strong>2020 onwards</strong> (where event counts are available). Use mouse wheel or drag to zoom/pan the rates chart.</p>
+  <p>BAAR/AFR/ACR use <em>per 10,000 display items</em> from Barker series (2010–2024). AER is plotted on the <strong>right axis (%)</strong> to show trend. Use mouse wheel or drag to zoom/pan.</p>
 </footer>
 
-<script defer src="src/js/app.js?v=8"></script>
+<script defer src="src/js/app.js?v=9"></script>
 </body>
 </html>
