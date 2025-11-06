@@ -65,6 +65,12 @@ function updateMetrics(rows){
 }
 
 function renderTable(rows){
+  // newest first in the table
+  rows = rows.slice().sort((a,b)=>{
+    const ad = a.date? Date.parse(a.date) : 0;
+    const bd = b.date? Date.parse(b.date) : 0;
+    return bd - ad;
+  });
   const tbody = document.getElementById('rows');
   tbody.innerHTML = '';
   const frag = document.createDocumentFragment();
@@ -113,19 +119,26 @@ function legendOnlyOptions(){
   return { plugins:{ legend:{ labels:{ color: document.body.classList.contains('dark') ? '#e6e6e6' : '#333' } } } };
 }
 
+function dualAxisOptions(aerPcts){
+  const dark = document.body.classList.contains('dark');
+  const minVal = Math.max(99.8, Math.floor((Math.min(...aerPcts.filter(x=>!isNaN(x))) - 0.05) * 1000)/1000);
+  return {
+    scales:{
+      x:{ grid:{ color: dark ? '#333' : '#e5e5e5' }, ticks:{ color: dark ? '#e6e6e6' : '#333' } },
+      y:{ beginAtZero:true, grid:{ color: dark ? '#333' : '#e5e5e5' }, ticks:{ color: dark ? '#e6e6e6' : '#333' }, title:{ display:true, text:'per 10k events', color: dark ? '#e6e6e6':'#333' } },
+      y1:{ position:'right', grid:{ drawOnChartArea:false }, min:minVal, max:100, ticks:{ color: dark ? '#e6e6e6' : '#333', callback:(v)=> v.toFixed(3)+'%' }, title:{ display:true, text:'AER (%)', color: dark ? '#e6e6e6':'#333' } }
+    },
+    plugins:{ legend:{ labels:{ color: dark ? '#e6e6e6' : '#333' } } }
+  };
+}
+
+
 function renderCharts(rows){
   if (typeof Chart === 'undefined') {
     console.warn('Chart.js not loaded; skipping charts.');
     return;
   }
   const optionsFixed = { responsive:false, animation:false };
-
-  // Sort for table is latest-first; for charts, we aggregate by year after filtering
-  rows = rows.slice().sort((a,b)=>{
-    const ad = a.date? Date.parse(a.date) : 0;
-    const bd = b.date? Date.parse(b.date) : 0;
-    return bd - ad;
-  });
 
   // Accidents per year (filtered)
   const byYear = new Map();
@@ -140,7 +153,7 @@ function renderCharts(rows){
     options: { ...optionsFixed, ...themedGridOptions() }
   });
 
-  // BAAR/AFR/ACR/AER (2020+)
+  // BAAR/AFR/ACR/AER (from 2020 onwards only)
   const ann = annual.filter(d=> d.year >= 2020);
   const yearsB = ann.map(d=>d.year);
   const baar = ann.map(d=>d.BAAR);
@@ -149,22 +162,23 @@ function renderCharts(rows){
   const aer  = ann.map(d=>d.AER);
   const ctx2 = document.getElementById('baarChart').getContext('2d');
   if(baarChart) baarChart.destroy();
+  const aerPct = aer.map(v => (v<=1.5 ? v*100 : v));
   baarChart = new Chart(ctx2, {
     type:'line',
     data:{ labels:yearsB, datasets:[
-      { label:'BAAR (per 10k events)', data:baar },
-      { label:'AFR (per 10k events)',  data:afr  },
-      { label:'ACR (per 10k events)',  data:acr  },
-      { label:'AER (Excellence Rate)', data:aer  }
+      { label:'BAAR (per 10k events)', data:baar, yAxisID:'y' },
+      { label:'AFR (per 10k events)',  data:afr,  yAxisID:'y' },
+      { label:'ACR (per 10k events)',  data:acr,  yAxisID:'y' },
+      { label:'AER (Excellence Rate)', data:aerPct, yAxisID:'y1' }
     ]},
     options:{
       responsive:false, animation:false,
-      ...themedGridOptions(),
+      ...dualAxisOptions(aerPct),
       plugins:{ zoom:{ zoom:{ wheel:{enabled:true}, pinch:{enabled:true}, mode:'x' }, pan:{ enabled:true, mode:'x' } } }
     }
   });
 
-  // 5M distribution (filtered) - pie without axes/grids
+  // 5M distribution (filtered)
   const five = {
     Man: rows.filter(d=>d.man_factor===1).length,
     Machine: rows.filter(d=>d.machine_factor===1).length,
@@ -180,7 +194,7 @@ function renderCharts(rows){
     options: { ...optionsFixed, ...legendOnlyOptions() }
   });
 
-  // Aerobatic manoeuvre breakdown pie (from text)
+  // Aerobatic manoeuvre breakdown (from remarks/manoeuvre)
   const keys = [
     ['cuban 8','cuban 8'], ['cuban eight','cuban 8'],
     ['loop','loop'], ['immelman','immelman'], ['immelmann','immelman'],
@@ -214,7 +228,7 @@ function renderCharts(rows){
 
 function update(){
   let rows = filterData();
-  // Sort by date desc for table (latest first)
+  // Sort by date desc for table as requested (latest first)
   rows = rows.slice().sort((a,b)=>{
     const ad = a.date? Date.parse(a.date) : 0;
     const bd = b.date? Date.parse(b.date) : 0;
