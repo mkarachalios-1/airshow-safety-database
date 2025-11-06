@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Airshow Safety Database (5M)</title>
+  <link rel="stylesheet" href="src/css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <header>
+    <h1>Airshow Safety Database</h1>
+    <p>Interactive, 5M-aligned repository of airshow accidents (1908–2025). Use search and filters below. Charts update as you filter.</p>
+  </header>
+  <section id="controls">
+    <div class="control">
+      <label for="search">Search</label>
+      <input id="search" type="text" placeholder="e.g. engine failure 2019, Duxford, MAC, loop">
+    </div>
+    <div class="control">
+      <label for="yearFrom">Year from</label>
+      <input id="yearFrom" type="number" min="1908" max="2025" value="2000">
+      <label for="yearTo">to</label>
+      <input id="yearTo" type="number" min="1908" max="2025" value="2025">
+    </div>
+    <div class="control">
+      <span>5M Filters:</span>
+      <label><input type="checkbox" id="manFilter" checked> Man</label>
+      <label><input type="checkbox" id="machineFilter" checked> Machine</label>
+      <label><input type="checkbox" id="mediumFilter" checked> Medium</label>
+      <label><input type="checkbox" id="missionFilter" checked> Mission</label>
+      <label><input type="checkbox" id="managementFilter" checked> Management</label>
+    </div>
+  </section>
+  <section id="dashboard">
+    <div class="cards">
+      <div class="card"><div class="metric" id="metricAccidents">—</div><div class="label">Accidents</div></div>
+      <div class="card"><div class="metric" id="metricFatalities">—</div><div class="label">Fatalities</div></div>
+      <div class="card"><div class="metric" id="metricCasualties">—</div><div class="label">Casualties</div></div>
+    </div>
+    <div class="charts">
+      <canvas id="accidentsChart"></canvas>
+      <canvas id="baarChart"></canvas>
+      <canvas id="fiveMChart"></canvas>
+    </div>
+  </section>
+  <section id="table">
+    <table>
+      <thead>
+        <tr>
+          <th>Date</th><th>Aircraft</th><th>Category</th><th>Country</th><th>Manoeuvre</th>
+          <th>FIT</th><th>MAC</th><th>LOC</th><th>Mech</th><th>Env</th>
+          <th>Fatal</th><th>Casualties</th><th>Event</th><th>Location</th>
+        </tr>
+      </thead>
+      <tbody id="rows"></tbody>
+    </table>
+  </section>
+
+  <footer>
+    <p>Metrics BAAR/AFR/ACR follow Des Barker’s definitions (per 10,000 events). Event counts available for 2022–2024; other years show N/A. Data anonymized – no personal identifiers.</p>
+    <p>Built for GitHub Pages: place files in a repo and enable Pages.</p>
+  </footer>
+
+  <script src="src/js/app.js"></script>
+</body>
+</html>
